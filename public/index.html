@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSA Cryptography Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RSA Cryptography Tool</h1>
+ 
+
+        <div class="section">
+            <h2>Generate RSA Key Pair</h2>
+            <label for="keySize">Key Size (bits):</label>
+            <input type="number" id="keySize" value="2048" min="1024" max="4096" step="512">
+            <button onclick="generateKeys()">Generate Key Pair</button>
+            <button onclick="downloadKeys()" id="downloadBtn" style="display:none;">Download Keys</button>
+            <div id="keyGenStatus"></div>
+            
+            <div style="margin-top: 20px;">
+                <h3>Public Key:</h3>
+                <textarea id="publicKey" readonly placeholder="Generated public key will appear here..."></textarea>
+                
+                <h3>Private Key:</h3>
+                <textarea id="privateKey" readonly placeholder="Generated private key will appear here..."></textarea>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>RSA Encryption</h2>
+            <label for="encryptData">Data to Encrypt:</label>
+            <textarea id="encryptData" placeholder="Enter text to encrypt..."></textarea>
+            
+            <label for="encryptPublicKey">Public Key:</label>
+            <textarea id="encryptPublicKey" placeholder="Paste public key here..."></textarea>
+            
+            <button onclick="encryptData()">Encrypt</button>
+            
+            <h3>Encrypted Data:</h3>
+            <textarea id="encryptedResult" readonly placeholder="Encrypted data will appear here..."></textarea>
+            <div id="encryptStatus"></div>
+        </div>
+
+        <div class="section">
+            <h2>RSA Decryption</h2>
+            <label for="decryptData">Encrypted Data:</label>
+            <textarea id="decryptData" placeholder="Paste encrypted data here..."></textarea>
+            
+            <label for="decryptPrivateKey">Private Key:</label>
+            <textarea id="decryptPrivateKey" placeholder="Paste private key here..."></textarea>
+            
+            <button onclick="decryptData()">Decrypt</button>
+            
+            <h3>Decrypted Data:</h3>
+            <textarea id="decryptedResult" readonly placeholder="Decrypted data will appear here..."></textarea>
+            <div id="decryptStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentKeys = null;
+
+        async function generateKeys() {
+            const keySize = document.getElementById('keySize').value;
+            const statusDiv = document.getElementById('keyGenStatus');
+            
+            try {
+                statusDiv.innerHTML = '<span class="success">Generating keys...</span>';
+                
+                const response = await fetch('/api/generate-rsa-keys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ keySize: parseInt(keySize) }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate keys');
+                }
+
+                const keys = await response.json();
+                currentKeys = keys;
+                
+                document.getElementById('publicKey').value = keys.publicKey;
+                document.getElementById('privateKey').value = keys.privateKey;
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+                
+                statusDiv.innerHTML = '<span class="success">Keys generated successfully!</span>';
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+            }
+        }
+
+        async function downloadKeys() {
+            if (!currentKeys) {
+                alert('No keys to download');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/download-keys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        publicKey: currentKeys.publicKey,
+                        privateKey: currentKeys.privateKey,
+                        filename: 'rsa-keys'
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to download keys');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'rsa-keys.json';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                alert('Error downloading keys: ' + error.message);
+            }
+        }
+
+        async function encryptData() {
+            const data = document.getElementById('encryptData').value;
+            const publicKey = document.getElementById('encryptPublicKey').value;
+            const statusDiv = document.getElementById('encryptStatus');
+            
+            if (!data || !publicKey) {
+                statusDiv.innerHTML = '<span class="error">Please provide both data and public key</span>';
+                return;
+            }
+
+            try {
+                statusDiv.innerHTML = '<span class="success">Encrypting...</span>';
+                
+                const response = await fetch('/api/rsa-encrypt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ data, publicKey }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to encrypt data');
+                }
+
+                const result = await response.json();
+                document.getElementById('encryptedResult').value = result.encrypted;
+                statusDiv.innerHTML = '<span class="success">Data encrypted successfully!</span>';
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+            }
+        }
+
+        async function decryptData() {
+            const encryptedData = document.getElementById('decryptData').value;
+            const privateKey = document.getElementById('decryptPrivateKey').value;
+            const statusDiv = document.getElementById('decryptStatus');
+            
+            if (!encryptedData || !privateKey) {
+                statusDiv.innerHTML = '<span class="error">Please provide both encrypted data and private key</span>';
+                return;
+            }
+
+            try {
+                statusDiv.innerHTML = '<span class="success">Decrypting...</span>';
+                
+                const response = await fetch('/api/rsa-decrypt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ encryptedData, privateKey }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to decrypt data');
+                }
+
+                const result = await response.json();
+                document.getElementById('decryptedResult').value = result.decrypted;
+                statusDiv.innerHTML = '<span class="success">Data decrypted successfully!</span>';
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+            }
+        }
+    </script>
+</body>
+</html>
