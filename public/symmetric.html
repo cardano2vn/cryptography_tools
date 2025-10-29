@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Symmetric Encryption Tool</title>
+  
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -77,6 +77,28 @@
         .nav a:hover {
             text-decoration: underline;
         }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .logo {
+            height: 50px;
+            width: auto;
+        }
+        .header-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            flex-grow: 1;
+        }
+        .header-spacer {
+            width: 50px;
+        }
         .info {
             background-color: #e9ecef;
             padding: 15px;
@@ -95,6 +117,11 @@
 </head>
 <body>
     <div class="container">
+        <div class="header">
+            <img src="https://res.cloudinary.com/dtlsezkru/image/upload/v1760329077/Color_V_5x_wa79w7.png" alt="C2VN Logo" class="logo">
+            <div class="header-title">Cryptography Tools</div>
+            <div class="header-spacer"></div>
+        </div>
         <h1>Symmetric Encryption Tool</h1>
         <div class="nav">
             <a href="/">RSA</a>
