@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash Function Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #6f42c1;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #563d7c;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .hash-display {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+        }
+        .algorithm-info {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hash Function Tool</h1>
+        <div class="nav">
+            <a href="/">RSA</a>
+            <a href="/symmetric">Symmetric</a>
+            <a href="/hash">Hash Functions</a>
+        </div>
+
+        <div class="info">
+            <h3>About Hash Functions</h3>
+            <p>Hash functions are one-way mathematical functions that convert input data of any size into a fixed-size hash value. They are fundamental to digital signatures, password storage, data integrity verification, and blockchain technology.</p>
+            
+            <h4>Key Properties:</h4>
+            <ul>
+                <li><strong>Deterministic:</strong> Same input always produces the same hash</li>
+                <li><strong>Fixed Output Size:</strong> Hash length is constant regardless of input size</li>
+                <li><strong>Avalanche Effect:</strong> Small input changes cause dramatic hash changes</li>
+                <li><strong>One-way:</strong> Computationally infeasible to reverse</li>
+                <li><strong>Collision Resistant:</strong> Hard to find two inputs with the same hash</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Hash Generator</h2>
+            <label for="inputData">Input Data:</label>
+            <textarea id="inputData" placeholder="Enter text to hash...">Hello, World!</textarea>
+            
+            <label for="hashAlgorithm">Hash Algorithm:</label>
+            <select id="hashAlgorithm" onchange="updateAlgorithmInfo()">
+                <option value="sha256">SHA-256</option>
+                <option value="sha512">SHA-512</option>
+                <option value="sha1">SHA-1 (deprecated)</option>
+                <option value="md5">MD5 (deprecated)</option>
+                <option value="sha3-256">SHA3-256</option>
+                <option value="sha3-512">SHA3-512</option>
+                <option value="blake2b512">BLAKE2b-512</option>
+            </select>
+            
+            <div id="algorithmInfo" class="algorithm-info"></div>
+            
+            <button onclick="generateHash()">Generate Hash</button>
+            
+            <h3>Hash Result:</h3>
+            <div id="hashResult" class="hash-display">Hash will appear here...</div>
+            
+            <h3>Hash Details:</h3>
+            <div id="hashDetails"></div>
+            
+            <div id="hashStatus"></div>
+        </div>
+
+        <div class="section">
+            <h2>Hash Comparison</h2>
+            <p>Compare how different algorithms hash the same input:</p>
+            
+            <label for="compareData">Input Data:</label>
+            <textarea id="compareData" placeholder="Enter text to compare across algorithms...">Test comparison</textarea>
+            
+            <button onclick="compareHashes()">Compare All Algorithms</button>
+            
+            <div id="comparisonResults"></div>
+            <div id="compareStatus"></div>
+        </div>
+
+        <div class="section">
+            <h2>Hash Verification</h2>
+            <p>Verify if input data matches an expected hash value:</p>
+            
+            <label for="verifyData">Input Data:</label>
+            <textarea id="verifyData" placeholder="Enter the original data..."></textarea>
+            
+            <label for="expectedHash">Expected Hash:</label>
+            <input type="text" id="expectedHash" placeholder="Enter the expected hash value...">
+            
+            <label for="verifyAlgorithm">Hash Algorithm:</label>
+            <select id="verifyAlgorithm">
+                <option value="sha256">SHA-256</option>
+                <option value="sha512">SHA-512</option>
+                <option value="sha1">SHA-1 (deprecated)</option>
+                <option value="md5">MD5 (deprecated)</option>
+                <option value="sha3-256">SHA3-256</option>
+                <option value="sha3-512">SHA3-512</option>
+                <option value="blake2b512">BLAKE2b-512</option>
+            </select>
+            
+            <button onclick="verifyHash()">Verify Hash</button>
+            
+            <div id="verificationResult"></div>
+            <div id="verifyStatus"></div>
+        </div>
+
+        <div class="section">
+            <h2>Algorithm Comparison</h2>
+            <table class="comparison-table">
+                <tr>
+                    <th>Algorithm</th>
+                    <th>Output Size</th>
+                    <th>Security Status</th>
+                    <th>Common Uses</th>
+                </tr>
+                <tr>
+                    <td>MD5</td>
+                    <td>128 bits (32 hex chars)</td>
+                    <td>🔴 Broken - Do not use</td>
+                    <td>Legacy systems, checksums (non-security)</td>
+                </tr>
+                <tr>
+                    <td>SHA-1</td>
+                    <td>160 bits (40 hex chars)</td>
+                    <td>🟡 Deprecated - Avoid</td>
+                    <td>Legacy systems, Git (being phased out)</td>
+                </tr>
+                <tr>
+                    <td>SHA-256</td>
+                    <td>256 bits (64 hex chars)</td>
+                    <td>🟢 Secure</td>
+                    <td>Bitcoin, SSL/TLS, digital signatures</td>
+                </tr>
+                <tr>
+                    <td>SHA-512</td>
+                    <td>512 bits (128 hex chars)</td>
+                    <td>🟢 Secure</td>
+                    <td>High-security applications</td>
+                </tr>
+                <tr>
+                    <td>SHA3-256</td>
+                    <td>256 bits (64 hex chars)</td>
+                    <td>🟢 Secure</td>
+                    <td>Modern applications, NIST standard</td>
+                </tr>
+                <tr>
+                    <td>SHA3-512</td>
+                    <td>512 bits (128 hex chars)</td>
+                    <td>🟢 Secure</td>
+                    <td>High-security modern applications</td>
+                </tr>
+                <tr>
+                    <td>BLAKE2b-512</td>
+                    <td>512 bits (128 hex chars)</td>
+                    <td>🟢 Secure</td>
+                    <td>High-performance applications</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const algorithmInfo = {
+            'sha256': 'SHA-256: Part of SHA-2 family, widely used and trusted. Standard for Bitcoin and many security applications.',
+            'sha512': 'SHA-512: Longer version of SHA-2, provides higher security margin. Good for high-security applications.',
+            'sha1': 'SHA-1: DEPRECATED. Vulnerabilities discovered, should not be used for security purposes.',
+            'md5': 'MD5: DEPRECATED. Cryptographically broken, fast collisions possible. Only use for non-security checksums.',
+            'sha3-256': 'SHA3-256: Latest NIST standard, different algorithm from SHA-2. Good alternative to SHA-256.',
+            'sha3-512': 'SHA3-512: Longer version of SHA-3, provides very high security.',
+            'blake2b512': 'BLAKE2b-512: High-performance cryptographic hash, faster than SHA-2/3 while maintaining security.'
+        };
+
+        function updateAlgorithmInfo() {
+            const algorithm = document.getElementById('hashAlgorithm').value;
+            document.getElementById('algorithmInfo').textContent = algorithmInfo[algorithm];
+        }
+
+        async function generateHash() {
+            const data = document.getElementById('inputData').value;
+            const algorithm = document.getElementById('hashAlgorithm').value;
+            const statusDiv = document.getElementById('hashStatus');
+            
+            if (!data) {
+                statusDiv.innerHTML = '<span class="error">Please provide input data</span>';
+                return;
+            }
+
+            try {
+                statusDiv.innerHTML = '<span class="success">Generating hash...</span>';
+                
+                const response = await fetch('/api/hash', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ data, algorithm }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate hash');
+                }
+
+                const result = await response.json();
+                
+                document.getElementById('hashResult').textContent = result.hash;
+                
+                const details = `
+                    <strong>Algorithm:</strong> ${result.algorithm}<br>
+                    <strong>Input Length:</strong> ${data.length} characters<br>
+                    <strong>Hash Length:</strong> ${result.hash.length} characters<br>
+                    <strong>Output Size:</strong> ${result.hash.length * 4} bits
+                `;
+                document.getElementById('hashDetails').innerHTML = details;
+                
+                statusDiv.innerHTML = '<span class="success">Hash generated successfully!</span>';
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+            }
+        }
+
+        async function compareHashes() {
+            const data = document.getElementById('compareData').value;
+            const statusDiv = document.getElementById('compareStatus');
+            
+            if (!data) {
+                statusDiv.innerHTML = '<span class="error">Please provide input data</span>';
+                return;
+            }
+
+            try {
+                statusDiv.innerHTML = '<span class="success">Generating comparison...</span>';
+                
+                const algorithms = ['md5', 'sha1', 'sha256', 'sha512', 'sha3-256', 'sha3-512', 'blake2b512'];
+                const results = [];
+                
+                for (const algorithm of algorithms) {
+                    const response = await fetch('/api/hash', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ data, algorithm }),
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        results.push({ algorithm: result.algorithm, hash: result.hash });
+                    }
+                }
+                
+                let tableHtml = '<h3>Hash Comparison Results:</h3><table class="comparison-table">';
+                tableHtml += '<tr><th>Algorithm</th><th>Hash Value</th></tr>';
+                
+                results.forEach(result => {
+                    tableHtml += `<tr><td>${result.algorithm}</td><td style="font-family: monospace; word-break: break-all;">${result.hash}</td></tr>`;
+                });
+                
+                tableHtml += '</table>';
+                document.getElementById('comparisonResults').innerHTML = tableHtml;
+                
+                statusDiv.innerHTML = '<span class="success">Comparison completed!</span>';
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+            }
+        }
+
+        async function verifyHash() {
+            const data = document.getElementById('verifyData').value;
+            const expectedHash = document.getElementById('expectedHash').value;
+            const algorithm = document.getElementById('verifyAlgorithm').value;
+            const statusDiv = document.getElementById('verifyStatus');
+            
+            if (!data || !expectedHash) {
+                statusDiv.innerHTML = '<span class="error">Please provide both data and expected hash</span>';
+                return;
+            }
+
+            try {
+                statusDiv.innerHTML = '<span class="success">Verifying hash...</span>';
+                
+                const response = await fetch('/api/hash', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ data, algorithm }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate hash for verification');
+                }
+
+                const result = await response.json();
+                const actualHash = result.hash.toLowerCase();
+                const expectedHashNormalized = expectedHash.toLowerCase().trim();
+                
+                const isMatch = actualHash === expectedHashNormalized;
+                
+                const resultHtml = `
+                    <h3>Verification Result:</h3>
+                    <p><strong>Status:</strong> <span class="${isMatch ? 'success' : 'error'}">${isMatch ? '✅ MATCH' : '❌ NO MATCH'}</span></p>
+                    <p><strong>Calculated Hash:</strong></p>
+                    <div class="hash-display">${actualHash}</div>
+                    <p><strong>Expected Hash:</strong></p>
+                    <div class="hash-display">${expectedHashNormalized}</div>
+                `;
+                
+                document.getElementById('verificationResult').innerHTML = resultHtml;
+                statusDiv.innerHTML = '<span class="success">Verification completed!</span>';
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+            }
+        }
+
+        updateAlgorithmInfo();
+    </script>
+</body>
+</html>

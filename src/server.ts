@@ -3,6 +3,7 @@ import path from 'path';
 import { randomBytes } from 'crypto';
 import { generateRSAKeyPair, encryptWithPublicKey, decryptWithPrivateKey } from './crypto/rsa';
 import { simulateSymmetricEncryption, encryptSymmetric, decryptSymmetric, generateSymmetricKey } from './crypto/symmetric';
+import { generateHash, verifyHash, getSupportedAlgorithms, getAlgorithmInfo } from './crypto/hash';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -89,6 +90,57 @@ app.post('/api/download-keys', (req, res) => {
   }
 });
 
+app.post('/api/hash', (req, res) => {
+  try {
+    const { data, algorithm } = req.body;
+    
+    if (!data) {
+      return res.status(400).json({ error: 'Data is required' });
+    }
+    
+    const result = generateHash(data, algorithm || 'sha256');
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: 'Failed to generate hash' });
+  }
+});
+
+app.post('/api/verify-hash', (req, res) => {
+  try {
+    const { data, expectedHash, algorithm } = req.body;
+    
+    if (!data || !expectedHash) {
+      return res.status(400).json({ error: 'Data and expected hash are required' });
+    }
+    
+    const isValid = verifyHash(data, expectedHash, algorithm || 'sha256');
+    const hashResult = generateHash(data, algorithm || 'sha256');
+    
+    res.json({
+      isValid,
+      actualHash: hashResult.hash,
+      expectedHash,
+      algorithm: hashResult.algorithm
+    });
+  } catch (error) {
+    res.status(400).json({ error: 'Failed to verify hash' });
+  }
+});
+
+app.get('/api/hash-algorithms', (req, res) => {
+  try {
+    const algorithms = getSupportedAlgorithms();
+    const algorithmDetails = algorithms.map(alg => ({
+      id: alg,
+      ...getAlgorithmInfo(alg)
+    }));
+    
+    res.json({ algorithms: algorithmDetails });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get algorithm information' });
+  }
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/symmetric.html'));
 });
@@ -99,6 +151,10 @@ app.get('/rsa', (req, res) => {
 
 app.get('/symmetric', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/symmetric.html'));
+});
+
+app.get('/hash', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../public/hash.html'));
 });
 
 app.listen(PORT, () => {

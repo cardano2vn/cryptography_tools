@@ -8,6 +8,7 @@ const path_1 = __importDefault(require("path"));
 const crypto_1 = require("crypto");
 const rsa_1 = require("./crypto/rsa");
 const symmetric_1 = require("./crypto/symmetric");
+const hash_1 = require("./crypto/hash");
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 app.use(express_1.default.json({ limit: '10mb' }));
@@ -89,6 +90,51 @@ app.post('/api/download-keys', (req, res) => {
         res.status(500).json({ error: 'Failed to prepare key download' });
     }
 });
+app.post('/api/hash', (req, res) => {
+    try {
+        const { data, algorithm } = req.body;
+        if (!data) {
+            return res.status(400).json({ error: 'Data is required' });
+        }
+        const result = (0, hash_1.generateHash)(data, algorithm || 'sha256');
+        res.json(result);
+    }
+    catch (error) {
+        res.status(400).json({ error: 'Failed to generate hash' });
+    }
+});
+app.post('/api/verify-hash', (req, res) => {
+    try {
+        const { data, expectedHash, algorithm } = req.body;
+        if (!data || !expectedHash) {
+            return res.status(400).json({ error: 'Data and expected hash are required' });
+        }
+        const isValid = (0, hash_1.verifyHash)(data, expectedHash, algorithm || 'sha256');
+        const hashResult = (0, hash_1.generateHash)(data, algorithm || 'sha256');
+        res.json({
+            isValid,
+            actualHash: hashResult.hash,
+            expectedHash,
+            algorithm: hashResult.algorithm
+        });
+    }
+    catch (error) {
+        res.status(400).json({ error: 'Failed to verify hash' });
+    }
+});
+app.get('/api/hash-algorithms', (req, res) => {
+    try {
+        const algorithms = (0, hash_1.getSupportedAlgorithms)();
+        const algorithmDetails = algorithms.map(alg => ({
+            id: alg,
+            ...(0, hash_1.getAlgorithmInfo)(alg)
+        }));
+        res.json({ algorithms: algorithmDetails });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to get algorithm information' });
+    }
+});
 app.get('/', (req, res) => {
     res.sendFile(path_1.default.join(__dirname, '../public/symmetric.html'));
 });
@@ -97,6 +143,9 @@ app.get('/rsa', (req, res) => {
 });
 app.get('/symmetric', (req, res) => {
     res.sendFile(path_1.default.join(__dirname, '../public/symmetric.html'));
+});
+app.get('/hash', (_req, res) => {
+    res.sendFile(path_1.default.join(__dirname, '../public/hash.html'));
 });
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
