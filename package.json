@@ -26,5 +26,8 @@
   },
   "keywords": ["rsa", "encryption", "cryptography", "typescript", "nodejs"],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": "20.x"
+  }
 }
