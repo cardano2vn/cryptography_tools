@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+    <title>Symmetric Encryption Tool</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -27,6 +27,7 @@
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            background-color: #fafafa;
         }
         textarea {
             width: 100%;
@@ -36,6 +37,8 @@
             border-radius: 4px;
             font-family: monospace;
             font-size: 12px;
+            box-sizing: border-box;
+            resize: vertical;
         }
         input[type="text"], select {
             width: 100%;
@@ -43,6 +46,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             margin-bottom: 10px;
+            box-sizing: border-box;
         }
         button {
             background-color: #28a745;
@@ -52,9 +56,20 @@
             border-radius: 4px;
             cursor: pointer;
             margin: 5px;
+            font-size: 14px;
         }
         button:hover {
             background-color: #1e7e34;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .download-btn {
+            background-color: #007bff;
+        }
+        .download-btn:hover {
+            background-color: #0056b3;
         }
         .success {
             color: #28a745;
@@ -112,6 +127,27 @@
             font-family: monospace;
             word-break: break-all;
             margin: 10px 0;
+            border: 1px solid #dee2e6;
+            font-size: 12px;
+        }
+        .button-group {
+            margin-top: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .result-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e8;
+            border-radius: 5px;
+            border: 1px solid #c3e6c3;
         }
     </style>
 </head>
@@ -122,107 +158,172 @@
             <div class="header-title">Cryptography Tools</div>
             <div class="header-spacer"></div>
         </div>
+        
         <h1>Symmetric Encryption Tool</h1>
+        
         <div class="nav">
-            <a href="/rsa">RSA</a>
-            <a href="/symmetric">Symmetric</a>
             <a href="/hash">Hash Functions</a>
+            <a href="/symmetric">Symmetric</a>
+            <a href="/rsa">RSA</a>
+            <a href="/dsa">DSA</a>
         </div>
 
         <div class="info">
             <h3>About Symmetric Encryption</h3>
-            <p>Symmetric encryption uses the same key for both encryption and decryption. This makes it faster than asymmetric encryption but requires secure key sharing between parties.</p>
+            <p>Symmetric encryption uses the same key for both encryption and decryption. This tool provides separate functions for key generation, data encryption, and data decryption. A fixed initialization vector (IV) is used internally for consistent encryption/decryption. Follow the workflow: Generate a key → Download it → Encrypt your data → Decrypt when needed.</p>
         </div>
 
+        <!-- Key Generation Section -->
         <div class="section">
-            <h2>Key Generation</h2>
-            <label for="autoAlgorithm">Encryption Algorithm:</label>
-            <select id="autoAlgorithm">
-                <option value="aes-256-cbc">AES-256-CBC</option>
-                <option value="aes-192-cbc">AES-192-CBC</option>
-                <option value="aes-128-cbc">AES-128-CBC</option>
-                <option value="des-ede3-cbc">3DES-EDE3-CBC</option>
-            </select>
+            <h2>🔑 Step 1: Generate Encryption Key</h2>
             
-            <button onclick="generateKey()">Generate Key</button>
-            
-            <div id="autoResults" style="margin-top: 20px; display: none;">
-                <h3>Generated Key Details:</h3>
-                <label>Generated Key:</label>
-                <div id="generatedKey" class="key-display"></div>
-                
-                <label>Algorithm:</label>
-                <div id="usedAlgorithm" class="key-display"></div>
-                
-                <label>Initialization Vector (IV):</label>
-                <div id="generatedIV" class="key-display"></div>
+            <div class="form-group">
+                <label for="keyGenAlgorithm">Encryption Algorithm:</label>
+                <select id="keyGenAlgorithm">
+                    <option value="aes-256-cbc">AES-256-CBC (Recommended)</option>
+                    <option value="aes-192-cbc">AES-192-CBC</option>
+                    <option value="aes-128-cbc">AES-128-CBC</option>
+                    <option value="des-ede3-cbc">3DES-CBC</option>
+                </select>
             </div>
-            <div id="autoStatus"></div>
+            
+            <div class="button-group">
+                <button onclick="generateKey()">🔑 Generate New Key</button>
+            </div>
+            
+            <div id="keyGenResults" style="display: none;">
+                <div class="result-section">
+                    <h3>Generated Key Information:</h3>
+                    
+                    <div class="form-group">
+                        <label>🔐 Encryption Key:</label>
+                        <div id="generatedKey" class="key-display"></div>
+                    </div>
+                    
+                    
+                    <div class="form-group">
+                        <label>⚙️ Algorithm Used:</label>
+                        <div id="usedAlgorithm" class="key-display"></div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="download-btn" onclick="downloadKey()">💾 Download Key File</button>
+                        <button onclick="copyKeyToEncrypt()">📋 Copy to Encryption Section</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="keyGenStatus"></div>
         </div>
 
+        <!-- Encryption Section -->
         <div class="section">
-            <h2>Encryption</h2>
-            <label for="manualData">Data to Encrypt:</label>
-            <textarea id="manualData" placeholder="Enter text to encrypt..."></textarea>
+            <h2>🔒 Step 2: Encrypt Data</h2>
             
-            <label for="manualKey">Encryption Key:</label>
-            <input type="text" id="manualKey" placeholder="Enter encryption key...">
+            <div class="form-group">
+                <label for="encryptData">Data to Encrypt:</label>
+                <textarea id="encryptData" placeholder="Enter the text you want to encrypt..."></textarea>
+            </div>
             
-            <label for="manualAlgorithm">Encryption Algorithm:</label>
-            <select id="manualAlgorithm">
-                <option value="aes-256-cbc">AES-256-CBC</option>
-                <option value="aes-192-cbc">AES-192-CBC</option>
-                <option value="aes-128-cbc">AES-128-CBC</option>
-                <option value="des-ede3-cbc">3DES-EDE3-CBC</option>
-            </select>
+            <div class="form-group">
+                <label for="encryptKey">Encryption Key (from Step 1):</label>
+                <input type="text" id="encryptKey" placeholder="Paste your encryption key here...">
+            </div>
             
-            <button onclick="manualEncrypt()">Encrypt</button>
+            <div class="form-group">
+                <label for="encryptAlgorithm">Algorithm:</label>
+                <select id="encryptAlgorithm">
+                    <option value="aes-256-cbc">AES-256-CBC</option>
+                    <option value="aes-192-cbc">AES-192-CBC</option>
+                    <option value="aes-128-cbc">AES-128-CBC</option>
+                    <option value="des-ede3-cbc">3DES-CBC</option>
+                </select>
+            </div>
             
-            <h3>Encrypted Data:</h3>
-            <textarea id="manualEncryptedResult" readonly placeholder="Encrypted data will appear here..."></textarea>
-            <div id="manualEncryptStatus"></div>
+            <div class="button-group">
+                <button onclick="encryptData()">🔒 Encrypt Data</button>
+            </div>
+            
+            <div id="encryptResults" style="display: none;">
+                <div class="result-section">
+                    <h3>Encryption Results:</h3>
+                    
+                    <div class="form-group">
+                        <label>🔐 Encrypted Data:</label>
+                        <textarea id="encryptResult" readonly></textarea>
+                    </div>
+                    
+                    
+                    <div class="button-group">
+                        <button onclick="copyToDecrypt()">📋 Copy to Decryption Section</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="encryptStatus"></div>
         </div>
 
+        <!-- Decryption Section -->
         <div class="section">
-            <h2>Decryption</h2>
-            <label for="decryptData">Encrypted Data:</label>
-            <textarea id="decryptData" placeholder="Paste encrypted data here..."></textarea>
+            <h2>🔓 Step 3: Decrypt Data</h2>
             
-            <label for="decryptKey">Decryption Key:</label>
-            <input type="text" id="decryptKey" placeholder="Enter decryption key...">
+            <div class="form-group">
+                <label for="decryptData">Encrypted Data:</label>
+                <textarea id="decryptData" placeholder="Paste the encrypted data here..."></textarea>
+            </div>
             
-            <label for="decryptIV">Initialization Vector (IV):</label>
-            <input type="text" id="decryptIV" placeholder="Enter IV...">
+            <div class="form-group">
+                <label for="decryptKey">Decryption Key:</label>
+                <input type="text" id="decryptKey" placeholder="Enter the same key used for encryption...">
+            </div>
             
-            <label for="decryptAlgorithm">Encryption Algorithm:</label>
-            <select id="decryptAlgorithm">
-                <option value="aes-256-cbc">AES-256-CBC</option>
-                <option value="aes-192-cbc">AES-192-CBC</option>
-                <option value="aes-128-cbc">AES-128-CBC</option>
-                <option value="des-ede3-cbc">3DES-EDE3-CBC</option>
-            </select>
             
-            <button onclick="decryptData()">Decrypt</button>
+            <div class="form-group">
+                <label for="decryptAlgorithm">Algorithm:</label>
+                <select id="decryptAlgorithm">
+                    <option value="aes-256-cbc">AES-256-CBC</option>
+                    <option value="aes-192-cbc">AES-192-CBC</option>
+                    <option value="aes-128-cbc">AES-128-CBC</option>
+                    <option value="des-ede3-cbc">3DES-CBC</option>
+                </select>
+            </div>
             
-            <h3>Decrypted Data:</h3>
-            <textarea id="decryptedResult" readonly placeholder="Decrypted data will appear here..."></textarea>
+            <div class="button-group">
+                <button onclick="decryptData()">🔓 Decrypt Data</button>
+            </div>
+            
+            <div id="decryptResults" style="display: none;">
+                <div class="result-section">
+                    <h3>Decryption Results:</h3>
+                    
+                    <div class="form-group">
+                        <label>📝 Decrypted Data:</label>
+                        <textarea id="decryptResult" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+            
             <div id="decryptStatus"></div>
         </div>
     </div>
 
     <script>
+        let currentSessionData = {
+            key: '',
+            algorithm: '',
+            encrypted: ''
+        };
+
         async function generateKey() {
-            const algorithm = document.getElementById('autoAlgorithm').value;
-            const statusDiv = document.getElementById('autoStatus');
+            const algorithm = document.getElementById('keyGenAlgorithm').value;
+            const statusDiv = document.getElementById('keyGenStatus');
 
             try {
                 statusDiv.innerHTML = '<span class="success">Generating key...</span>';
                 
                 const response = await fetch('/api/generate-symmetric-key', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ algorithm }),
                 });
 
@@ -232,96 +333,161 @@
 
                 const result = await response.json();
                 
+                // Store session data
+                currentSessionData.key = result.key;
+                currentSessionData.algorithm = result.algorithm;
+                
+                // Display results
                 document.getElementById('generatedKey').textContent = result.key;
                 document.getElementById('usedAlgorithm').textContent = result.algorithm;
-                document.getElementById('generatedIV').textContent = result.iv;
-                document.getElementById('autoResults').style.display = 'block';
+                document.getElementById('keyGenResults').style.display = 'block';
                 
-                statusDiv.innerHTML = '<span class="success">Key generated successfully!</span>';
+                statusDiv.innerHTML = '<span class="success">✅ Key generated successfully!</span>';
             } catch (error) {
-                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+                statusDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
             }
         }
 
-        async function manualEncrypt() {
-            const data = document.getElementById('manualData').value;
-            const key = document.getElementById('manualKey').value;
-            const algorithm = document.getElementById('manualAlgorithm').value;
-            const statusDiv = document.getElementById('manualEncryptStatus');
+        function downloadKey() {
+            if (!currentSessionData.key) {
+                document.getElementById('keyGenStatus').innerHTML = '<span class="error">No key generated to download</span>';
+                return;
+            }
+
+            const keyData = {
+                key: currentSessionData.key,
+                algorithm: currentSessionData.algorithm,
+                generatedAt: new Date().toISOString(),
+                note: "Keep this key file secure. You will need this key to decrypt data."
+            };
+
+            const blob = new Blob([JSON.stringify(keyData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `symmetric-key-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            document.getElementById('keyGenStatus').innerHTML = '<span class="success">💾 Key file downloaded successfully!</span>';
+        }
+
+        function copyKeyToEncrypt() {
+            if (!currentSessionData.key) {
+                document.getElementById('keyGenStatus').innerHTML = '<span class="error">No key generated to copy</span>';
+                return;
+            }
+
+            document.getElementById('encryptKey').value = currentSessionData.key;
+            document.getElementById('encryptAlgorithm').value = currentSessionData.algorithm;
             
-            if (!data || !key) {
-                statusDiv.innerHTML = '<span class="error">Please provide both data and key</span>';
+            document.getElementById('keyGenStatus').innerHTML = '<span class="success">📋 Key copied to encryption section!</span>';
+        }
+
+        async function encryptData() {
+            const data = document.getElementById('encryptData').value;
+            const key = document.getElementById('encryptKey').value;
+            const algorithm = document.getElementById('encryptAlgorithm').value;
+            const statusDiv = document.getElementById('encryptStatus');
+            
+            if (!data.trim()) {
+                statusDiv.innerHTML = '<span class="error">Please enter data to encrypt</span>';
+                return;
+            }
+
+            if (!key.trim()) {
+                statusDiv.innerHTML = '<span class="error">Please enter an encryption key</span>';
                 return;
             }
 
             try {
-                statusDiv.innerHTML = '<span class="success">Encrypting...</span>';
+                statusDiv.innerHTML = '<span class="success">Encrypting data...</span>';
                 
-                const response = await fetch('/api/symmetric-encrypt', {
+                const response = await fetch('/api/symmetric-encrypt-manual', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ data, algorithm }),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data, key, algorithm }),
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to encrypt data');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to encrypt data');
                 }
 
                 const result = await response.json();
-                document.getElementById('manualEncryptedResult').value = result.encrypted;
-                statusDiv.innerHTML = '<span class="success">Data encrypted successfully!</span>';
+                
+                // Store current encryption data
+                currentSessionData.encrypted = result.encrypted;
+                
+                // Display results
+                document.getElementById('encryptResult').value = result.encrypted;
+                document.getElementById('encryptResults').style.display = 'block';
+                
+                statusDiv.innerHTML = '<span class="success">✅ Data encrypted successfully!</span>';
             } catch (error) {
-                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+                statusDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
             }
+        }
+
+        function copyToDecrypt() {
+            const encryptedData = document.getElementById('encryptResult').value;
+            const key = document.getElementById('encryptKey').value;
+            const algorithm = document.getElementById('encryptAlgorithm').value;
+
+            if (!encryptedData) {
+                document.getElementById('encryptStatus').innerHTML = '<span class="error">No encrypted data to copy</span>';
+                return;
+            }
+
+            document.getElementById('decryptData').value = encryptedData;
+            document.getElementById('decryptKey').value = key;
+            document.getElementById('decryptAlgorithm').value = algorithm;
+            
+            document.getElementById('encryptStatus').innerHTML = '<span class="success">📋 Data copied to decryption section!</span>';
         }
 
         async function decryptData() {
             const encryptedData = document.getElementById('decryptData').value;
             const key = document.getElementById('decryptKey').value;
-            const iv = document.getElementById('decryptIV').value;
             const algorithm = document.getElementById('decryptAlgorithm').value;
             const statusDiv = document.getElementById('decryptStatus');
             
-            if (!encryptedData || !key || !iv) {
-                statusDiv.innerHTML = '<span class="error">Please provide encrypted data, key, and IV</span>';
+            if (!encryptedData.trim()) {
+                statusDiv.innerHTML = '<span class="error">Please enter encrypted data</span>';
+                return;
+            }
+
+            if (!key.trim()) {
+                statusDiv.innerHTML = '<span class="error">Please enter the decryption key</span>';
                 return;
             }
 
             try {
-                statusDiv.innerHTML = '<span class="success">Decrypting...</span>';
+                statusDiv.innerHTML = '<span class="success">Decrypting data...</span>';
                 
                 const response = await fetch('/api/symmetric-decrypt', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ encryptedData, key, iv, algorithm }),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ encryptedData, key, algorithm }),
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to decrypt data');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to decrypt data');
                 }
 
                 const result = await response.json();
-                document.getElementById('decryptedResult').value = result.decrypted;
-                statusDiv.innerHTML = '<span class="success">Data decrypted successfully!</span>';
+                
+                // Display results
+                document.getElementById('decryptResult').value = result.decrypted;
+                document.getElementById('decryptResults').style.display = 'block';
+                
+                statusDiv.innerHTML = '<span class="success">✅ Data decrypted successfully!</span>';
             } catch (error) {
-                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+                statusDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
             }
-        }
-
-        function copyToDecrypt() {
-            const key = document.getElementById('generatedKey').textContent;
-            const encrypted = document.getElementById('autoEncryptedResult').value;
-            const algorithm = document.getElementById('usedAlgorithm').textContent;
-            const iv = document.getElementById('generatedIV').textContent;
-            
-            document.getElementById('decryptData').value = encrypted;
-            document.getElementById('decryptKey').value = key;
-            document.getElementById('decryptIV').value = iv;
-            document.getElementById('decryptAlgorithm').value = algorithm;
         }
     </script>
 </body>

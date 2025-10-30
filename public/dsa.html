@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA - Digital Signature Algorithm</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .logo {
+            height: 50px;
+            width: auto;
+        }
+        .header-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            flex-grow: 1;
+        }
+        .header-spacer {
+            width: 50px;
+        }
+        .info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .key-display {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 11px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://res.cloudinary.com/dtlsezkru/image/upload/v1760329077/Color_V_5x_wa79w7.png" alt="C2VN Logo" class="logo">
+            <div class="header-title">Cryptography Tools</div>
+            <div class="header-spacer"></div>
+        </div>
+        <h1>Digital Signature Algorithm (DSA)</h1>
+        <div class="nav">
+            <a href="/hash">Hash Functions</a>
+            <a href="/symmetric">Symmetric</a>
+            <a href="/rsa">RSA</a>
+            <a href="/dsa">DSA</a>
+        </div>
+
+        <div class="info">
+            <h3>About DSA</h3>
+            <p>The Digital Signature Algorithm (DSA) is a Federal Information Processing Standard for digital signatures. It uses a pair of keys (public and private) to create and verify digital signatures, ensuring message authenticity and non-repudiation.</p>
+        </div>
+
+        <div class="section">
+            <h2>Generate DSA Key Pair</h2>
+            <button onclick="generateKeys()">Generate DSA Key Pair</button>
+            <button onclick="downloadKeys()" id="downloadBtn" style="display:none;">Download Keys</button>
+            <div id="keyGenStatus"></div>
+            
+            <div style="margin-top: 20px;">
+                <h3>Public Key:</h3>
+                <div>
+                    <strong>p:</strong> <div class="key-display" id="publicKeyP"></div>
+                    <strong>q:</strong> <div class="key-display" id="publicKeyQ"></div>
+                    <strong>g:</strong> <div class="key-display" id="publicKeyG"></div>
+                    <strong>y:</strong> <div class="key-display" id="publicKeyY"></div>
+                </div>
+                
+                <h3>Private Key:</h3>
+                <div>
+                    <strong>p:</strong> <div class="key-display" id="privateKeyP"></div>
+                    <strong>q:</strong> <div class="key-display" id="privateKeyQ"></div>
+                    <strong>g:</strong> <div class="key-display" id="privateKeyG"></div>
+                    <strong>x:</strong> <div class="key-display" id="privateKeyX"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Sign Message</h2>
+            <label for="messageToSign">Message to Sign:</label>
+            <textarea id="messageToSign" placeholder="Enter message to sign..."></textarea>
+            
+            <button onclick="signMessage()">Sign Message</button>
+            
+            <h3>Digital Signature:</h3>
+            <div>
+                <strong>r:</strong> <div class="key-display" id="signatureR"></div>
+                <strong>s:</strong> <div class="key-display" id="signatureS"></div>
+            </div>
+            <div id="signStatus"></div>
+        </div>
+
+        <div class="section">
+            <h2>Verify Signature</h2>
+            <label for="messageToVerify">Original Message:</label>
+            <textarea id="messageToVerify" placeholder="Enter original message..."></textarea>
+            
+            <label for="signatureRVerify">Signature r:</label>
+            <input type="text" id="signatureRVerify" placeholder="Enter signature r value...">
+            
+            <label for="signatureSVerify">Signature s:</label>
+            <input type="text" id="signatureSVerify" placeholder="Enter signature s value...">
+            
+            <h3>Public Key for Verification:</h3>
+            <label for="verifyPublicKeyP">p:</label>
+            <input type="text" id="verifyPublicKeyP" placeholder="Enter p value...">
+            
+            <label for="verifyPublicKeyQ">q:</label>
+            <input type="text" id="verifyPublicKeyQ" placeholder="Enter q value...">
+            
+            <label for="verifyPublicKeyG">g:</label>
+            <input type="text" id="verifyPublicKeyG" placeholder="Enter g value...">
+            
+            <label for="verifyPublicKeyY">y:</label>
+            <input type="text" id="verifyPublicKeyY" placeholder="Enter y value...">
+            
+            <button onclick="verifySignature()">Verify Signature</button>
+            
+            <h3>Verification Result:</h3>
+            <div id="verificationResult"></div>
+            <div id="verifyStatus"></div>
+        </div>
+
+        <div class="section">
+            <h2>DSA Simulation</h2>
+            <p>This will generate a complete DSA operation: key generation, signing, and verification.</p>
+            <label for="simulationMessage">Message for Simulation:</label>
+            <textarea id="simulationMessage" placeholder="Enter message for complete DSA simulation..."></textarea>
+            
+            <button onclick="simulateDSA()">Run Complete DSA Simulation</button>
+            
+            <div id="simulationResult" style="margin-top: 20px;"></div>
+            <div id="simulationStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentKeys = null;
+        let currentSignature = null;
+
+        async function generateKeys() {
+            const statusDiv = document.getElementById('keyGenStatus');
+            
+            try {
+                statusDiv.innerHTML = '<span class="success">Generating DSA keys...</span>';
+                
+                const response = await fetch('/api/generate-dsa-keys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate DSA keys');
+                }
+
+                const keys = await response.json();
+                currentKeys = keys;
+                
+                // Display public key
+                document.getElementById('publicKeyP').textContent = keys.publicKey.p;
+                document.getElementById('publicKeyQ').textContent = keys.publicKey.q;
+                document.getElementById('publicKeyG').textContent = keys.publicKey.g;
+                document.getElementById('publicKeyY').textContent = keys.publicKey.y;
+                
+                // Display private key
+                document.getElementById('privateKeyP').textContent = keys.privateKey.p;
+                document.getElementById('privateKeyQ').textContent = keys.privateKey.q;
+                document.getElementById('privateKeyG').textContent = keys.privateKey.g;
+                document.getElementById('privateKeyX').textContent = keys.privateKey.x;
+                
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+                
+                statusDiv.innerHTML = '<span class="success">DSA keys generated successfully!</span>';
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+            }
+        }
+
+        async function downloadKeys() {
+            if (!currentKeys) {
+                alert('No keys to download');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/download-dsa-keys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        publicKey: currentKeys.publicKey,
+                        privateKey: currentKeys.privateKey,
+                        filename: 'dsa-keys'
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to download keys');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'dsa-keys.json';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                alert('Error downloading keys: ' + error.message);
+            }
+        }
+
+        async function signMessage() {
+            const message = document.getElementById('messageToSign').value;
+            const statusDiv = document.getElementById('signStatus');
+            
+            if (!message) {
+                statusDiv.innerHTML = '<span class="error">Please provide a message to sign</span>';
+                return;
+            }
+
+            if (!currentKeys) {
+                statusDiv.innerHTML = '<span class="error">Please generate keys first</span>';
+                return;
+            }
+
+            try {
+                statusDiv.innerHTML = '<span class="success">Signing message...</span>';
+                
+                const response = await fetch('/api/dsa-sign', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        message, 
+                        privateKey: currentKeys.privateKey 
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to sign message');
+                }
+
+                const result = await response.json();
+                currentSignature = result.signature;
+                
+                document.getElementById('signatureR').textContent = result.signature.r;
+                document.getElementById('signatureS').textContent = result.signature.s;
+                
+                statusDiv.innerHTML = '<span class="success">Message signed successfully!</span>';
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+            }
+        }
+
+        async function verifySignature() {
+            const message = document.getElementById('messageToVerify').value;
+            const signatureR = document.getElementById('signatureRVerify').value;
+            const signatureS = document.getElementById('signatureSVerify').value;
+            const publicKeyP = document.getElementById('verifyPublicKeyP').value;
+            const publicKeyQ = document.getElementById('verifyPublicKeyQ').value;
+            const publicKeyG = document.getElementById('verifyPublicKeyG').value;
+            const publicKeyY = document.getElementById('verifyPublicKeyY').value;
+            const statusDiv = document.getElementById('verifyStatus');
+            
+            if (!message || !signatureR || !signatureS || !publicKeyP || !publicKeyQ || !publicKeyG || !publicKeyY) {
+                statusDiv.innerHTML = '<span class="error">Please provide all required fields</span>';
+                return;
+            }
+
+            try {
+                statusDiv.innerHTML = '<span class="success">Verifying signature...</span>';
+                
+                const response = await fetch('/api/dsa-verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message,
+                        signature: { r: signatureR, s: signatureS },
+                        publicKey: { p: publicKeyP, q: publicKeyQ, g: publicKeyG, y: publicKeyY }
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to verify signature');
+                }
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('verificationResult');
+                
+                if (result.isValid) {
+                    resultDiv.innerHTML = '<span class="success">✓ Signature is VALID</span>';
+                } else {
+                    resultDiv.innerHTML = '<span class="error">✗ Signature is INVALID</span>';
+                }
+                
+                statusDiv.innerHTML = '<span class="success">Signature verification completed!</span>';
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+            }
+        }
+
+        async function simulateDSA() {
+            const message = document.getElementById('simulationMessage').value;
+            const statusDiv = document.getElementById('simulationStatus');
+            
+            if (!message) {
+                statusDiv.innerHTML = '<span class="error">Please provide a message for simulation</span>';
+                return;
+            }
+
+            try {
+                statusDiv.innerHTML = '<span class="success">Running DSA simulation...</span>';
+                
+                const response = await fetch('/api/dsa-simulate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to run DSA simulation');
+                }
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('simulationResult');
+                
+                resultDiv.innerHTML = `
+                    <h3>Simulation Results:</h3>
+                    <p><strong>Message:</strong> ${result.message}</p>
+                    <p><strong>Keys Generated:</strong> ✓</p>
+                    <p><strong>Message Signed:</strong> ✓</p>
+                    <p><strong>Signature Valid:</strong> ${result.isValid ? '✓ YES' : '✗ NO'}</p>
+                    <div style="margin-top: 15px;">
+                        <strong>Signature:</strong><br>
+                        r: <span style="font-family: monospace; font-size: 12px;">${result.signature.r}</span><br>
+                        s: <span style="font-family: monospace; font-size: 12px;">${result.signature.s}</span>
+                    </div>
+                `;
+                
+                statusDiv.innerHTML = '<span class="success">DSA simulation completed successfully!</span>';
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">Error: ' + error.message + '</span>';
+            }
+        }
+
+        function copyToVerification() {
+            if (currentKeys && currentSignature) {
+                document.getElementById('messageToVerify').value = document.getElementById('messageToSign').value;
+                document.getElementById('signatureRVerify').value = currentSignature.r;
+                document.getElementById('signatureSVerify').value = currentSignature.s;
+                document.getElementById('verifyPublicKeyP').value = currentKeys.publicKey.p;
+                document.getElementById('verifyPublicKeyQ').value = currentKeys.publicKey.q;
+                document.getElementById('verifyPublicKeyG').value = currentKeys.publicKey.g;
+                document.getElementById('verifyPublicKeyY').value = currentKeys.publicKey.y;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,14 +1,34 @@
-# RSA Cryptography Website
+# Cryptography Tools - User Manual
 
-A comprehensive web application demonstrating RSA encryption, symmetric encryption, and hash functions built with TypeScript and designed for Vercel deployment.
+A comprehensive web-based cryptography toolkit for educational and demonstration purposes, featuring RSA, Symmetric Encryption, Hash Functions, and Digital Signature Algorithm (DSA) implementations.
 
-## Features
+## Table of Contents
 
-- **RSA Encryption/Decryption**: Generate RSA key pairs and encrypt/decrypt data
-- **Symmetric Encryption**: Support for AES-256-CBC, AES-192-CBC, AES-128-CBC, and 3DES-EDE3-CBC
-- **Hash Functions**: SHA-256, SHA-512, SHA-1, MD5, SHA3-256, SHA3-512, and BLAKE2b-512
-- **Interactive UI**: User-friendly web interface for all cryptographic operations
-- **Educational Content**: Explanations of cryptographic concepts and security best practices
+- [Overview](#overview)
+- [Installation & Setup](#installation--setup)
+- [Getting Started](#getting-started)
+- [Tool Descriptions](#tool-descriptions)
+  - [RSA Cryptography](#rsa-cryptography)
+  - [Symmetric Encryption](#symmetric-encryption)
+  - [Hash Functions](#hash-functions)
+  - [Digital Signature Algorithm (DSA)](#digital-signature-algorithm-dsa)
+- [API Reference](#api-reference)
+- [Security Considerations](#security-considerations)
+- [Troubleshooting](#troubleshooting)
+- [Technical Specifications](#technical-specifications)
+
+## Overview
+
+This cryptography toolkit provides a user-friendly web interface for understanding and experimenting with fundamental cryptographic operations. Each tool is designed for educational purposes and includes step-by-step operations to help users learn how different cryptographic algorithms work.
+
+### Features
+
+- **RSA Encryption/Decryption**: Generate key pairs, encrypt and decrypt messages
+- **Symmetric Encryption**: Support for multiple algorithms (AES, DES, 3DES, etc.)
+- **Hash Functions**: Generate and verify cryptographic hashes
+- **Digital Signatures (DSA)**: Create and verify digital signatures
+- **Key Management**: Download and manage cryptographic keys
+- **Educational Interface**: Clear explanations and demonstrations
 
 ## Project Structure
 
